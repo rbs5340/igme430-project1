@@ -5,21 +5,6 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script>
-    const postAddUser = (name,age)=>{
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': "application/json",
-          'Accept': "application/json"
-        },
-        body: JSON.stringify({
-          name: name,
-          age: age
-        })
-      }
-      return fetch('/addUser',options);
-    }
-
     const postGetMon = (name,type)=>{
       const options = {
         method: 'POST',
@@ -35,18 +20,12 @@
       return fetch('/getPokemon',options);
     }
 
-    /*
-    const postGetUser = (url,method) => {
-      const options = {
-        method: method,
-        headers: {
-          'Content-Type': "application/json",
-          'Accept': "application/json"
-        }
-      }
-      return fetch(url,options);
+    const getAllSend = (e) => {
+        e.preventDefault();
+        //debugger
+        sendFetchRequest("/getAllPokemon",document.getElementById("methodSelect").value);
     }
-      */
+
     const handleResponse = (response, body={}) => {
       const h1 = document.createElement('h1');
         const p = document.createElement('p');
@@ -125,48 +104,9 @@
     };
 
     const init = () => {
-      //const button = document.querySelector("#send");
-
       const pokeForm = document.querySelector("#pokeForm");
       const pokeButton = pokeForm.querySelector('[type=Submit]');
-      const addForm = document.querySelector("#nameForm");
-      const addButton = addForm.querySelector('[type=Submit]');
-      const getForm = document.querySelector("#userForm");
-      const getButton = addForm.querySelector('[type=Submit]');
-      //const pageValue = document.getElementById("page").value;
-      //const typeValue = document.getElementById("type").value;
-      
-      const getSend = (e) => {
-        e.preventDefault();
-        //debugger
-        sendFetchRequest(document.getElementById("urlField").value,document.getElementById("methodSelect").value);
-    }
-
-      const send = (e) => {
-        e.preventDefault();
-        console.log("prevented default");
-        let response;
-        let postResult = postAddUser(document.getElementById("nameField").value, document.getElementById("ageField").value);
-        postResult.then(result =>{
-          response=result;
-          return result.text();
-        })
-        .then((text) => {
-          //debugger
-          let data;
-          if(response.status===204){
-            data = {
-              title: "Updated (No Content)"
-            };
-          }else{
-            data = JSON.parse(text);
-          }
-            
-          
-          handleResponse(response,data);
-          //debugger
-        })
-      }
+      const allPokeButton = document.querySelector("#getAllPoke");
 
       const pokeSend = (e) => {
         e.preventDefault();
@@ -193,9 +133,7 @@
           //debugger
         })
       }
-      //button.addEventListener('click', send);
-      addForm.addEventListener('submit',send);
-      getForm.addEventListener('submit',getSend);
+      allPokeButton.addEventListener('click',getAllSend);
       pokeForm.addEventListener('submit',pokeSend)
     };
 
@@ -204,15 +142,7 @@
 </head>
 <body>
   <section id="top">
-    <h3>POST Status Code Tests</h3>
-    <!-- action="/addUser" method="post" -->
-    <form id="nameForm" action=""> 
-      <label for="name">Name: </label>
-      <input id="nameField" type="text" name="name"/>
-      <label for="age">Age: </label>
-      <input id="ageField" type="number" name="age" min="0" max="100" step="1"/>
-      <input type="submit" value="Add User" />
-    </form>
+    <h3>Pokedex Search Tool</h3>
     <!-- action="/getPokemon" method="post" -->
     <form id="pokeForm" action=""> 
       <label for="name">Name: </label>
@@ -221,20 +151,11 @@
       <input id="pokeTypeField" type="text" name="type" />
       <input type="submit" value="Get Pokemon" />
     </form>
-    <!-- action="/getUsers" method="get" -->
-    <form id="userForm" action="">
-      <select id='urlField'>
-        <option value='/getUsers'>/getUsers</option>
-        <option value='/notReal'>/notReal</option>
-        <option value='/getAllPokemon'>/getAllPokemon</option>
-        <option value='/getPokemon'>/getPokemon</option>
-      </select>
-      <select id="methodSelect">
-        <option value="get">GET</option>
-        <option value="head">HEAD</option>
-      </select>
-      <input type="submit" value="Get User" />
-    </form>
+    <button id="getAllPoke" value='/getAllPokemon'>Get All Pokemon</button>
+    <select id="methodSelect">
+      <option value="get">GET</option>
+      <option value="head">HEAD</option>
+    </select>
   </section>
   <section id="content">
   </section>

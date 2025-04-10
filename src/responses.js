@@ -8,11 +8,6 @@ const index = fs.readFileSync(`${__dirname}/../client/client.html`);
 const style = fs.readFileSync(`${__dirname}/../client/style.css`);
 let pokedex = require("../pokedex.json");
 
-let jsonUsers = {
-    users:[]
-};
-let userCount=0;
-
 // function to send response
 const respond = (request, response, content, type, status=200) => {
     response.writeHead(status, {
@@ -36,12 +31,8 @@ const getIndex = (request, response) => {
 };
 
 const getCss = (request,response) => {
-  respond(request, response, style, 'text/css');
-}
-
-const getUsers = (request,response) => {
-    respond(request, response, JSON.stringify(jsonUsers), 'application/json', 200);
-}
+    respond(request, response, style, 'text/css');
+  }
 
 const getAllPokemon = (request,response) => {
     respond(request,response,JSON.stringify(pokedex),'application/json',200);
@@ -80,50 +71,6 @@ const getPokemon = (request,response) => {
     respond(request,response,JSON.stringify(pokeList),'application/json',200);
 }
     
-
-const addUser = (request,response) => {
-    const { name, age } = request.body;
-    console.log("Name: "+name);
-    if(!name||!age){ //If name or age aren't filled
-        let responseObject = {
-            title: "Bad Request",
-            message: "Name and age are both required",
-            id: "addUserMissingParams"
-           };
-         
-        respond(request, response, JSON.stringify(responseObject), 'application/json', 400);
-    }else{
-        let done=false;
-        if(userCount>0){
-            debugger
-            for(let i=0;i<userCount;i++){
-                if(jsonUsers.users[i].name==name){
-                    let responseObject = {
-                        title: "Updated (No Content)"
-                       };
-                    respond(request, response, JSON.stringify(responseObject), 'application/json', 204);
-                    done=true;
-                    break;
-                }
-            }
-        }
-        if(!done){
-            jsonUsers.users.push({
-                name: name,
-                age: age
-            })
-            userCount++;
-            let responseObject = {
-                title: "Created",
-                message: "Created Succesfully",
-            };
-            respond(request, response, JSON.stringify(responseObject), 'application/json', 201);
-        }
-    }
-    
-
-}
-
 const getNotFound = (request,response) => {
     if(request.method==='HEAD'){ //If HEAD request
         let responseObject = {
@@ -154,8 +101,6 @@ const getObjectByValue = function (array, key, value) {
 module.exports = {
   getIndex,
   getCss,
-  getUsers,
-  addUser,
   getAllPokemon,
   getPokemon,
   getNotFound

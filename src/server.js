@@ -8,8 +8,6 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 // key:value object to look up URL routes to specific functions
 const urlStruct = {
   '/': responseHandler.getIndex,
-  '/getUsers': responseHandler.getUsers,
-  '/addUser': responseHandler.addUser,
   '/notReal': responseHandler.getNotFound,
   '/style.css': responseHandler.getCss,
   '/getAllPokemon':responseHandler.getAllPokemon,
