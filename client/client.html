@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Our simple HTTP server</title>
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  
+  <script>
+    const postAddUser = (name,age)=>{
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': "application/json",
+          'Accept': "application/json"
+        },
+        body: JSON.stringify({
+          name: name,
+          age: age
+        })
+      }
+      return fetch('/addUser',options);
+    }
+
+    const postGetMon = (name,type)=>{
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': "application/json",
+          'Accept': "application/json"
+        },
+        body: JSON.stringify({
+          name: name,
+          type: type
+        })
+      }
+      return fetch('/getPokemon',options);
+    }
+
+    /*
+    const postGetUser = (url,method) => {
+      const options = {
+        method: method,
+        headers: {
+          'Content-Type': "application/json",
+          'Accept': "application/json"
+        }
+      }
+      return fetch(url,options);
+    }
+      */
+    const handleResponse = (response, body={}) => {
+      const h1 = document.createElement('h1');
+        const p = document.createElement('p');
+        const h2 = document.createElement('h2');
+        const rawData = document.createElement('p');
+        
+        switch(response.status){
+          case 200:
+          h1.textContent = `Success`;
+          p.textContent = JSON.stringify(body);
+            break;
+          case 400:
+            h1.textContent="Bad Request";
+            p.textContent="Message: Name and age are both required";
+            break;
+          case 204:
+            h1.textContent="Updated (No Content)";
+             break;
+          case 201:
+            h1.textContent="Created";
+            p.textContent="Created Successfuly";
+            break;
+          case 404:
+            break;
+        }
+        //Grab the content section from the HTML so we can put things on the screen.
+        const content = document.querySelector('#content');
+        //Add a horizontal rule.
+        content.appendChild(document.createElement('hr'));
+
+        //Create some dom elements to display later
+        
+
+        //Add the content type and raw response text to elements
+        //h2.textContent = contentType;
+        rawData.textContent = JSON.stringify(body);
+
+        //If the server sent back json
+            
+          //Parse the json back into a javascript object, and display the data.
+          //const parsedResponse = JSON.parse(resText);
+          //h1.textContent = `${response.title}`;
+          if(body.message){
+            p.textContent = `Message: ${body.message}`;
+          }
+          
+        
+
+        //Add the elements to the screen.
+        //document.querySelector('#content').innerHTML=h1.innerHTML+p.innerHTML;
+        content.innerHTML="";
+        content.appendChild(h1);
+        content.appendChild(p);
+        //content.appendChild(h2);
+        //content.appendChild(rawData);       
+    };
+
+    const sendFetchRequest = (url,method) => {
+      const options = {
+        method: method,
+        headers: {'Accept': 'application/json'},
+      }
+
+      const fetchPromise = fetch(url, options);
+
+      fetchPromise.then((response) => { 
+        //debugger
+        if(method==="head"){
+          handleResponse(response);
+        }else{
+          return response.json().then((body)=>{
+          handleResponse(response,body);
+        });
+        }
+      });
+    };
+
+    const init = () => {
+      //const button = document.querySelector("#send");
+
+      const pokeForm = document.querySelector("#pokeForm");
+      const pokeButton = pokeForm.querySelector('[type=Submit]');
+      const addForm = document.querySelector("#nameForm");
+      const addButton = addForm.querySelector('[type=Submit]');
+      const getForm = document.querySelector("#userForm");
+      const getButton = addForm.querySelector('[type=Submit]');
+      //const pageValue = document.getElementById("page").value;
+      //const typeValue = document.getElementById("type").value;
+      
+      const getSend = (e) => {
+        e.preventDefault();
+        //debugger
+        sendFetchRequest(document.getElementById("urlField").value,document.getElementById("methodSelect").value);
+    }
+
+      const send = (e) => {
+        e.preventDefault();
+        console.log("prevented default");
+        let response;
+        let postResult = postAddUser(document.getElementById("nameField").value, document.getElementById("ageField").value);
+        postResult.then(result =>{
+          response=result;
+          return result.text();
+        })
+        .then((text) => {
+          //debugger
+          let data;
+          if(response.status===204){
+            data = {
+              title: "Updated (No Content)"
+            };
+          }else{
+            data = JSON.parse(text);
+          }
+            
+          
+          handleResponse(response,data);
+          //debugger
+        })
+      }
+
+      const pokeSend = (e) => {
+        e.preventDefault();
+        console.log("prevented default");
+        let response;
+        let postResult = postGetMon(document.getElementById("pokeNameField").value, document.getElementById("pokeTypeField").value);
+        postResult.then(result =>{
+          response=result;
+          return result.text();
+        })
+        .then((text) => {
+          //debugger
+          let data;
+          if(response.status===204){
+            data = {
+              title: "Updated (No Content)"
+            };
+          }else{
+            data = JSON.parse(text);
+          }
+            
+          
+          handleResponse(response,data);
+          //debugger
+        })
+      }
+      //button.addEventListener('click', send);
+      addForm.addEventListener('submit',send);
+      getForm.addEventListener('submit',getSend);
+      pokeForm.addEventListener('submit',pokeSend)
+    };
+
+    window.onload = init;
+  </script>
+</head>
+<body>
+  <section id="top">
+    <h3>POST Status Code Tests</h3>
+    <!-- action="/addUser" method="post" -->
+    <form id="nameForm" action=""> 
+      <label for="name">Name: </label>
+      <input id="nameField" type="text" name="name"/>
+      <label for="age">Age: </label>
+      <input id="ageField" type="number" name="age" min="0" max="100" step="1"/>
+      <input type="submit" value="Add User" />
+    </form>
+    <!-- action="/getPokemon" method="post" -->
+    <form id="pokeForm" action=""> 
+      <label for="name">Name: </label>
+      <input id="pokeNameField" type="text" name="name" />
+      <label for="type">Type: </label>
+      <input id="pokeTypeField" type="text" name="type" />
+      <input type="submit" value="Get Pokemon" />
+    </form>
+    <!-- action="/getUsers" method="get" -->
+    <form id="userForm" action="">
+      <select id='urlField'>
+        <option value='/getUsers'>/getUsers</option>
+        <option value='/notReal'>/notReal</option>
+        <option value='/getAllPokemon'>/getAllPokemon</option>
+        <option value='/getPokemon'>/getPokemon</option>
+      </select>
+      <select id="methodSelect">
+        <option value="get">GET</option>
+        <option value="head">HEAD</option>
+      </select>
+      <input type="submit" value="Get User" />
+    </form>
+  </section>
+  <section id="content">
+  </section>
+</body>
+</html>
