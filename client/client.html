@@ -5,7 +5,9 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script>
-    const postGetMon = (name,type)=>{
+    let headCheck=false;
+
+    const postGetMon = (num,name,type,evoNum)=>{
       const options = {
         method: 'POST',
         headers: {
@@ -13,79 +15,140 @@
           'Accept': "application/json"
         },
         body: JSON.stringify({
+          num: num,
           name: name,
-          type: type
+          type: type,
+          evoNum: evoNum
         })
       }
       return fetch('/getPokemon',options);
     }
 
+    const postAddMon = (num,name,type1,type2)=>{
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': "application/json",
+          'Accept': "application/json"
+        },
+        body: JSON.stringify({
+          num: num,
+          name: name,
+          type1: type1,
+          type2: type2
+        })
+      }
+      return fetch('/addPokemon',options);
+    }
+
+    const postAddEvo = (baby,adult)=>{
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': "application/json",
+          'Accept': "application/json"
+        },
+        body: JSON.stringify({
+          baby: baby,
+          adult: adult
+        })
+      }
+      return fetch('/addEvo',options);
+    }
+
+    const postGetMonName = (name)=>{
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': "application/json",
+          'Accept': "application/json"
+        },
+        body: JSON.stringify({
+          name: name
+        })
+      }
+      return fetch('/getPokeByName',options);
+    }
+
+    const postGetNames = (num,type,evoNum)=>{
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': "application/json",
+          'Accept': "application/json"
+        },
+        body: JSON.stringify({
+          num: num,
+          type:type,
+          evoNum:evoNum
+        })
+      }
+      return fetch('/getNames',options);
+    }
+
     const getAllSend = (e) => {
         e.preventDefault();
         //debugger
-        sendFetchRequest("/getAllPokemon",document.getElementById("methodSelect").value);
+        sendFetchRequest("/getAllPokemon",document.getElementById("methodSelectAll").value);
     }
 
     const handleResponse = (response, body={}) => {
+      console.log("big test");
       const h1 = document.createElement('h1');
-        const p = document.createElement('p');
-        const h2 = document.createElement('h2');
-        const rawData = document.createElement('p');
-        
+      const statusText = document.createElement('p');
+      const contentLength = document.createElement('p');
+      const p = document.createElement('p');
+
+      statusText.textContent="Status: "+response.status;
+      contentLength.textContent="Content-Length: "+JSON.stringify(body).length;
+      if(headCheck){
+        body={};
+      }
         switch(response.status){
           case 200:
-          h1.textContent = `Success`;
+          h1.textContent = `Results:`;
           p.textContent = JSON.stringify(body);
             break;
           case 400:
             h1.textContent="Bad Request";
-            p.textContent="Message: Name and age are both required";
+            p.textContent="Message: Missing params";
+            contentLength.textContent="Content-Length: "+p.textContent.length;
             break;
           case 204:
             h1.textContent="Updated (No Content)";
+            p.textContent="Message: Num or Name already taken";
+            contentLength.textContent="Content-Length: "+p.textContent.length;
              break;
           case 201:
             h1.textContent="Created";
-            p.textContent="Created Successfuly";
+            p.textContent="Message: Created Successfully";
+            contentLength.textContent="Content-Length: "+p.textContent.length;
             break;
           case 404:
+          h1.textContent="Error";
+          p.textContent="Message: Pokemon Not Found";
+          contentLength.textContent="Content-Length: "+p.textContent.length;
             break;
         }
+
+        
         //Grab the content section from the HTML so we can put things on the screen.
         const content = document.querySelector('#content');
         //Add a horizontal rule.
-        content.appendChild(document.createElement('hr'));
-
-        //Create some dom elements to display later
-        
-
-        //Add the content type and raw response text to elements
-        //h2.textContent = contentType;
-        rawData.textContent = JSON.stringify(body);
-
-        //If the server sent back json
-            
-          //Parse the json back into a javascript object, and display the data.
-          //const parsedResponse = JSON.parse(resText);
-          //h1.textContent = `${response.title}`;
-          if(body.message){
-            p.textContent = `Message: ${body.message}`;
-          }
-          
-        
+        content.appendChild(document.createElement('hr'));    
 
         //Add the elements to the screen.
         //document.querySelector('#content').innerHTML=h1.innerHTML+p.innerHTML;
         content.innerHTML="";
         content.appendChild(h1);
-        content.appendChild(p);
-        //content.appendChild(h2);
-        //content.appendChild(rawData);       
+        content.appendChild(statusText);
+        content.appendChild(contentLength);
+        content.appendChild(p);    
     };
 
     const sendFetchRequest = (url,method) => {
       const options = {
-        method: method,
+        method: "get",
         headers: {'Accept': 'application/json'},
       }
 
@@ -94,25 +157,34 @@
       fetchPromise.then((response) => { 
         //debugger
         if(method==="head"){
-          handleResponse(response);
+          headCheck=true;
+          //handleResponse(response);
         }else{
-          return response.json().then((body)=>{
+          headCheck=false;
+          //return response.json().then((body)=>{
+          //handleResponse(response,body);
+        //});
+        }
+        return response.json().then((body)=>{
           handleResponse(response,body);
         });
-        }
       });
     };
 
     const init = () => {
       const pokeForm = document.querySelector("#pokeForm");
-      const pokeButton = pokeForm.querySelector('[type=Submit]');
+      //const pokeButton = pokeForm.querySelector('[type=Submit]');
       const allPokeButton = document.querySelector("#getAllPoke");
+      const pokeNameForm = document.querySelector("#pokeNameForm");
+      const getNamesForm = document.querySelector("#namesForm");
+      const addPokeForm = document.querySelector("#pokeAddForm");
+      const addEvoForm = document.querySelector("#evoForm");
 
       const pokeSend = (e) => {
         e.preventDefault();
         console.log("prevented default");
         let response;
-        let postResult = postGetMon(document.getElementById("pokeNameField").value, document.getElementById("pokeTypeField").value);
+        let postResult = postGetMon(document.getElementById("pokeNumField").value, document.getElementById("pokeNameField").value, document.getElementById("pokeTypeField").value,document.getElementById("pokeEvoNumField").value);
         postResult.then(result =>{
           response=result;
           return result.text();
@@ -128,13 +200,145 @@
             data = JSON.parse(text);
           }
             
-          
+          if(document.getElementById("methodSelectPoke").value === "head"){
+            headCheck=true;
+            //handleResponse(response);
+          }else{
+            console.log(" head test else");
+            headCheck=false;
+          }
           handleResponse(response,data);
+          
           //debugger
         })
       }
+      
+      const pokeNameSend = (e) => {
+        e.preventDefault();
+        console.log("prevented default");
+        let response;
+        let postResult = postGetMonName(document.getElementById("pokeExNameField").value);
+        postResult.then(result =>{
+          response=result;
+          return result.text();
+        })
+        .then((text) => {
+          //debugger
+          let data;
+          if(response.status===204){
+            data = {
+              title: "Updated (No Content)"
+            };
+          }else{
+            data = JSON.parse(text);
+          }
+            
+          if(document.getElementById("methodSelectPokeName").value === "head"){
+            headCheck=true;
+            //handleResponse(response);
+          }else{
+            console.log(" head test else");
+            headCheck=false;
+          }
+          handleResponse(response,data);
+          
+          //debugger
+        })
+      }
+
+      const pokeNames = (e) => {
+        e.preventDefault();
+        console.log("prevented default");
+        let response;
+        let postResult = postGetNames(document.getElementById("namesNum").value,document.getElementById("namesType").value,document.getElementById("namesEvoNum").value);
+        postResult.then(result =>{
+          response=result;
+          return result.text();
+        })
+        .then((text) => {
+          //debugger
+          let data;
+          if(response.status===204){
+            data = {
+              title: "Updated (No Content)"
+            };
+          }else{
+            data = JSON.parse(text);
+          }
+            
+          if(document.getElementById("methodSelectNames").value === "head"){
+            headCheck=true;
+            //handleResponse(response);
+          }else{
+            console.log(" head test else");
+            headCheck=false;
+          }
+          handleResponse(response,data);
+          
+          //debugger
+        })
+      }
+      
+      const pokeAdd = (e) => {
+        e.preventDefault();
+        console.log("prevented default");
+        let response;
+        let postResult = postAddMon(document.getElementById("pokeAddNumField").value, document.getElementById("pokeAddNameField").value, document.getElementById("pokeType1Field").value,document.getElementById("pokeType2Field").value);
+        postResult.then(result =>{
+          response=result;
+          return result.text();
+        })
+        .then((text) => {
+          //debugger
+          let data;
+          if(response.status===204){
+            data = {
+              title: "Updated (No Content)"
+            };
+          }else{
+            data = JSON.parse(text);
+          }
+            
+          headCheck=false;
+          handleResponse(response,data);
+          
+          //debugger
+        })
+      }
+      
+      const evoAdd = (e) => {
+        e.preventDefault();
+        console.log("prevented default");
+        let response;
+        let postResult = postAddEvo(document.getElementById("babyNum").value, document.getElementById("adultNum").value);
+        postResult.then(result =>{
+          response=result;
+          return result.text();
+        })
+        .then((text) => {
+          //debugger
+          let data;
+          if(response.status===204){
+            data = {
+              title: "Updated (No Content)"
+            };
+          }else{
+            data = JSON.parse(text);
+          }
+            
+          headCheck=false;
+          handleResponse(response,data);
+          
+          //debugger
+        })
+      }
+
       allPokeButton.addEventListener('click',getAllSend);
-      pokeForm.addEventListener('submit',pokeSend)
+      pokeForm.addEventListener('submit',pokeSend);
+      pokeNameForm.addEventListener('submit',pokeNameSend);
+      getNamesForm.addEventListener('submit',pokeNames);
+      addPokeForm.addEventListener('submit',pokeAdd);
+      addEvoForm.addEventListener('submit',evoAdd);
     };
 
     window.onload = init;
@@ -142,20 +346,78 @@
 </head>
 <body>
   <section id="top">
-    <h3>Pokedex Search Tool</h3>
-    <!-- action="/getPokemon" method="post" -->
+    <h1>Pokedex Search Tool</h1>
+     <h3>Get Pokemon</h3>
     <form id="pokeForm" action=""> 
+      <label for="num">Num: </label>
+      <input id="pokeNumField" type="number" num="num" />
       <label for="name">Name: </label>
       <input id="pokeNameField" type="text" name="name" />
       <label for="type">Type: </label>
       <input id="pokeTypeField" type="text" name="type" />
-      <input type="submit" value="Get Pokemon" />
+      <label for="evoNum">Evolution Num: </label>
+      <input id="pokeEvoNumField" type="number" evoNum="evoNum" />
+      <br>
+      <input type="submit" value="Submit" />
+      <select id="methodSelectPoke">
+        <option value="get">GET</option>
+        <option value="head">HEAD</option>
+      </select>
     </form>
-    <button id="getAllPoke" value='/getAllPokemon'>Get All Pokemon</button>
-    <select id="methodSelect">
+    <h3>Get Pokemon By Name</h3>
+    <form id="pokeNameForm" action=""> 
+      <label for="name">Exact Name: </label>
+      <input id="pokeExNameField" type="text" name="name" />
+      <br>
+      <input type="submit" value="Submit" />
+      <select id="methodSelectPokeName">
+        <option value="get">GET</option>
+        <option value="head">HEAD</option>
+      </select>
+    </form>
+    <h3>Get Pokemon Names</h3>
+    <form id="namesForm" action=""> 
+      <label for="num">Num: </label>
+      <input id="namesNum" type="number" num="num" />
+      <label for="type">Type: </label>
+      <input id="namesType" type="text" name="type" />
+      <label for="evoNum">Evolution Num: </label>
+      <input id="namesEvoNum" type="number" evoNum="evoNum" />
+      <br>
+      <input type="submit" value="Submit" />
+      <select id="methodSelectNames">
+        <option value="get">GET</option>
+        <option value="head">HEAD</option>
+      </select>
+    </form>
+    <h3>Get All Pokemon</h3>
+    <button id="getAllPoke" value='/getAllPokemon'>Submit</button>
+    <select id="methodSelectAll">
       <option value="get">GET</option>
       <option value="head">HEAD</option>
     </select>
+    <h3>Add Pokemon</h3>
+    <form id="pokeAddForm" action=""> 
+      <label for="num">Num: </label>
+      <input id="pokeAddNumField" type="number" num="num" />
+      <label for="name">Name: </label>
+      <input id="pokeAddNameField" type="text" name="name" />
+      <label for="type1">Type 1: </label>
+      <input id="pokeType1Field" type="text" name="type1" />
+      <label for="type2">Type 2: </label>
+      <input id="pokeType2Field" type="text" name="type2" />
+      <br>
+      <input type="submit" value="Submit" />
+    </form>
+    <h3>Add Evolution</h3>
+    <form id="evoForm" action=""> 
+      <label for="baby">Baby Num: </label>
+      <input id="babyNum" type="number" baby="baby" />
+      <label for="adult">Adult Num: </label>
+      <input id="adultNum" type="number" adult="adult" />
+      <br>
+      <input type="submit" value="Submit" />
+    </form>
   </section>
   <section id="content">
   </section>

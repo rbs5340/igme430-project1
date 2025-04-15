@@ -11,7 +11,11 @@ const urlStruct = {
   '/notReal': responseHandler.getNotFound,
   '/style.css': responseHandler.getCss,
   '/getAllPokemon':responseHandler.getAllPokemon,
+  '/getPokeByName':responseHandler.getPokeByName,
+  '/getNames':responseHandler.getNames,
   '/getPokemon':responseHandler.getPokemon,
+  '/addPokemon':responseHandler.addPokemon,
+  '/addEvo':responseHandler.addEvo,
   index: responseHandler.getIndex,
   notReal: responseHandler.getNotFound
 };
